@@ -1,27 +1,41 @@
-version: '3'
-
-volumes:
-  pg_data:
-  static:
-
-services:
-  db:
-    image: postgres:13
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-  backend:
-    build: ./backend/
-    env_file: .env
-  frontend:
-    env_file: .env
-    build: ./frontend/
-    command: cp -r /app/build/. /static/
-    volumes:
-      - static:/static
-  gateway:
-    build: ./nginx/
-    env_file: .env
-    ports:
+version: '3' 
+ 
+volumes: 
+  pg_data: 
+  static: 
+  media: 
+ 
+services: 
+  db: 
+    image: postgres:13 
+    env_file: .env 
+    volumes: 
+      - pg_data:/var/lib/postgresql/data 
+    restart: always 
+  backend: 
+    image: kuzilya/kittygram_backend:latest 
+    env_file: .env 
+    volumes:       
+      - static:/backend_static/ 
+      - media:/media/ 
+    restart: always 
+    depends_on: 
+      - db 
+  frontend: 
+    image: kuzilya/kittygram_frontend:latest 
+    env_file: .env 
+    command: cp -r /app/build/. /frontend_static/ 
+    volumes: 
+      - static:/frontend_static/ 
+  gateway: 
+    image: kuzilya/kittygram_gateway:latest 
+    env_file: .env 
+    volumes: 
+      - static:/staticfiles 
+      - media:/media 
+    restart: always 
+    depends_on: 
+      - backend 
+      - frontend 
+    ports: 
       - 9000:80
-    volumes:
-      - static:/static
